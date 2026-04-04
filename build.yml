@@ -1,49 +1,36 @@
-name: Build Android APK
+name: Build APK
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
+      - name: Télécharger le projet
+        uses: actions/checkout@v3
 
-    - name: Télécharger le projet
-      uses: actions/checkout@v3
+      - name: Installer Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.10
 
-    - name: Installer Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: 3.10
+      - name: Installer dépendances système
+        run: |
+          sudo apt update
+          sudo apt install -y \
+          git zip unzip openjdk-17-jdk python3-pip \
+          autoconf libtool pkg-config zlib1g-dev \
+          libncurses5-dev libncursesw5-dev libtinfo5 \
+          cmake libffi-dev libssl-dev
 
-    - name: Installer dépendances système
-      run: |
-        sudo apt update
-        sudo apt install -y git zip unzip openjdk-11-jdk python3-pip build-essential
+      - name: Installer Buildozer
+        run: |
+          pip install --upgrade pip
+          pip install buildozer cython
 
-    - name: Installer Buildozer
-      run: |
-        pip install --upgrade buildozer cython
-
-    - name: Installer Android SDK
-      run: |
-        mkdir -p ~/.buildozer/android/platform/android-sdk
-        cd ~/.buildozer/android/platform/android-sdk
-        wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O tools.zip
-        unzip tools.zip
-        mkdir -p cmdline-tools/latest
-        mv cmdline-tools/* cmdline-tools/latest/
-        rm tools.zip
-
-    - name: Installer Build Tools Android
-      run: |
-        yes | ~/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/sdkmanager --licenses
-        ~/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/sdkmanager "build-tools;33.0.2" "platforms;android-33"
-
-    - name: Construire APK
-      run: |
-        buildozer android debug
+      - name: Construire APK
+        run: |
+          buildozer android debug
